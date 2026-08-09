@@ -4,7 +4,7 @@
   "supportedInterfaces": [
     {
       "url": "https://agent-network-silk.vercel.app/api/a2a",
-      "protocolBinding": "HTTP+JSON",
+      "protocolBinding": "JSONRPC",
       "protocolVersion": "1.0"
     }
   ],
