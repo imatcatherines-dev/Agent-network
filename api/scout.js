@@ -50,21 +50,39 @@ const query = rawQuery.trim().toLowerCase();
         { status: response.status }
       );
     }
-        const matches = agents.filter(agent => {
-      const capabilities = Array.isArray(agent.capabilities)
-        ? agent.capabilities
-        : [];
+ const words = query
+  .split(/[^a-z0-9]+/)
+  .filter(word =>
+    word.length > 2 &&
+    !["find", "agent", "for", "the", "with"].includes(word)
+  );
 
-      const searchable = [
-        agent.name,
-        ...capabilities
-      ]
-        .join(" ")
-        .toLowerCase();
+const matches = agents
+  .map(agent => {       
+    const capabilities = Array.isArray(agent.capabilities)
+      ? agent.capabilities
+      : [];
 
-      return searchable.includes(query);
-    });
+    const searchable = [
+      agent.name,
+      ...capabilities
+    ]
+      .join(" ")
+      .toLowerCase();
+      
+    const score = words.reduce(
+      (total, word) =>
+        total + (searchable.includes(word) ? 1 : 0),
+      0
+    );
 
+    return {
+      ...agent,
+      score
+    };
+  })
+  .filter(agent => agent.score > 0)
+  .sort((a, b) => b.score - a.score);
     return Response.json({
       agent: "Scout",
       query,
