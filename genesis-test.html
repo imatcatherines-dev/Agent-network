@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genesis Router Test</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 30px 20px;
+      background: #080b12;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 650px;
+      margin: auto;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    input {
+      background: #111622;
+      color: white;
+      border: 1px solid #31394b;
+    }
+
+    button {
+      background: #755cff;
+      color: white;
+      border: 0;
+      font-weight: bold;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #111622;
+      border: 1px solid #31394b;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 25px;
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>Genesis Router Test</h1>
+
+  <p>
+    Give Genesis a task and see which active agent it chooses.
+  </p>
+
+  <input
+    id="task"
+    value="Find an agent for network discovery"
+    placeholder="Describe a task"
+  >
+
+  <button onclick="routeTask()">
+    Route Task
+  </button>
+
+  <pre id="result">Waiting for task...</pre>
+  <script>
+  async function routeTask() {
+    const task = document.getElementById("task").value.trim();
+    const result = document.getElementById("result");
+
+    if (!task) {
+      result.textContent = "Enter a task first.";
+      return;
+    }
+
+    result.textContent = "Genesis is routing the task...";
+
+    try {
+      const response = await fetch("/api/genesis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          task
+        })
+      });
+
+      const data = await response.json();
+
+      result.textContent =
+        JSON.stringify(data, null, 2);
+
+    } catch (error) {
+      result.textContent =
+        "Request failed: " + String(error);
+    }
+  }
+</script>
+
+</main>
+</body>
+</html>
