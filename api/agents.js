@@ -1,70 +1,129 @@
-export default {
-  async fetch(request) {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const secretKey = process.env.SUPABASE_SECRET_KEY;
+function getHeaders() {
+  return {
+    apikey: process.env.SUPABASE_SECRET_KEY,
+    "Content-Type": "application/json",
+    Accept: "application/json"
+  };
+}
 
-    const headers = {
-      apikey: secretKey,
-      "Content-Type": "application/json",
-      Accept: "application/json"
-    };
+function checkConfig() {
+  return Boolean(
+    process.env.SUPABASE_URL &&
+    process.env.SUPABASE_SECRET_KEY
+  );
+}
 
-    try {
-      if (request.method === "GET") {
-        const response = await fetch(
-          `${supabaseUrl}/rest/v1/agents` +
-          `?select=id,name,endpoint,capabilities,status,created_at` +
-          `&status=eq.active&order=created_at.desc`,
-          { headers }
-        );
+export async function GET() {
+  try {
+    if (!checkConfig()) {
+      return Response.json(
+        { error: "Server configuration missing." },
+        { status: 500 }
+      );
+    }
 
-        const data = await response.json();
+    const url =
+      `${process.env.SUPABASE_URL}/rest/v1/agents` +
+      `?select=id,name,endpoint,capabilities,status,created_at` +
+      `&status=eq.active&order=created_at.desc`;
 
-        return Response.json(
-          { network: "Agent Network", agents: data },
-          { status: response.ok ? 200 : 500 }
-        );
+    const response = await fetch(url, {
+      headers: getHeaders()
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return Response.json(
+        { error: "Database request failed", details: data },
+        { status: response.status }
+      );
+    }
+
+    return Response.json({
+      network: "Agent Network",
+      agents: data
+    });
+
+  } catch (error) {
+    return Response.json(
+      { error: "Server error", details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request) {
+  try {
+    if (!checkConfig()) {
+      return Response.json(
+        { error: "Server configuration missing." },
+        { status: 500 }
+      );
+    }
+
+    const body = await request.json();
+
+    const name =
+      typeof body.name === "string"
+        ? body.name.trim()
+        : "";
+
+    if (!name || name.length > 80) {
+      return Response.json(
+        { error: "A valid agent name is required." },
+        { status: 400 }
+      );
+    }
+
+    const endpoint =
+      typeof body.endpoint === "string" &&
+      body.endpoint.trim()
+        ? body.endpoint.trim()
+        : null;
+
+    const capabilities = Array.isArray(body.capabilities)
+      ? body.capabilities
+          .filter(x => typeof x === "string")      .slice(0, 20)
+      : [];
+
+    const response = await fetch(
+      `${process.env.SUPABASE_URL}/rest/v1/agents`,
+      {
+        method: "POST",
+        headers: {
+          ...getHeaders(),
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          name,
+          endpoint,
+          capabilities,
+          status: "pending"
+        })
       }
+    );
 
-      if (request.method === "POST") {
-        const body = await request.json();
+    const data = await response.json();    if (!response.ok) {
+      return Response.json(
+        { error: "Registration failed", details: data },
+        { status: response.status }
+      );
+    }
 
-        const name =
-          typeof body.name === "string" ? body.name.trim() : "";
+    return Response.json(
+      {
+        message: "Agent registration received.",
+        agent: data[0]
+      },
+      { status: 201 }
+    );
 
-        if (!name || name.length > 80) {
-          return Response.json(
-            { error: "A valid agent name is required." },
-            { status: 400 }
-          );
-        }
-
-        const capabilities = Array.isArray(body.capabilities)
-          ? body.capabilities
-              .filter(item => typeof item === "string")
-              .slice(0, 20)
-          : [];
-
-        const endpoint =
-          typeof body.endpoint === "string" && body.endpoint.trim()
-            ? body.endpoint.trim()
-            : null;
-
-        const response = await fetch(
-          `${supabaseUrl}/rest/v1/agents`,
-          {
-            method: "POST",
-            headers: {
-              ...headers,
-              Prefer: "return=representation"
-            },
-            body: JSON.stringify({
-              name,
-              endpoint,
-              capabilities,
-              status: "pending"
-            })
-          }
-        );
-
-        const
+  } catch (error) {
+    return Response.json(
+      { error: "Server error", details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+         
