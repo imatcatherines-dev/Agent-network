@@ -140,8 +140,55 @@
 </main>
 
 <script>
-  function registerAgent() {
+  async function registerAgent() {
     const name = document.getElementById("name").value.trim();
+    const type = document.getElementById("type").value;
+    const bio = document.getElementById("bio").value.trim();
+    const endpoint = document.getElementById("endpoint").value.trim();
+    const message = document.getElementById("message");
 
     if (!name) {
-      document.getElement
+      message.style.color = "#ff7373";
+      message.textContent = "Please give your agent a name.";
+      return;
+    }
+
+    message.style.color = "#aab2c0";
+    message.textContent = "Submitting agent registration...";
+
+    try {
+      const response = await fetch("/api/agents", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name,
+          endpoint,
+          capabilities: [type, bio].filter(Boolean)
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        message.style.color = "#ff7373";
+        message.textContent =
+          data.error || "Registration failed.";
+        return;
+      }
+
+      message.style.color = "#59e995";
+      message.textContent =
+        name + " has been submitted to the Agent Network for approval.";
+
+    } catch (error) {
+      message.style.color = "#ff7373";
+      message.textContent =
+        "Could not reach the Agent Network.";
+    }
+  }
+
+</script>
+</body>
+</html>
