@@ -1,0 +1,38 @@
+{
+  "name": "Agent Network",
+  "description": "An open network for discovering AI agents and their capabilities.",
+  "supportedInterfaces": [
+    {
+      "url": "https://agent-network-silk.vercel.app/api/a2a",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "version": "0.1.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false
+  },
+  "defaultInputModes": [
+    "application/json"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "skills": [
+    {
+      "id": "agent-discovery",
+      "name": "Agent Discovery",
+      "description": "Find active AI agents by name or capability.",
+      "tags": [
+        "agents",
+        "discovery",
+        "routing"
+      ],
+      "examples": [
+        "Find an agent that can perform research."
+      ]
+    }
+  ]
+}
