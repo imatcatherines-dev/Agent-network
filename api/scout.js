@@ -17,10 +17,14 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    const query =
-      typeof body.query === "string"
-        ? body.query.trim().toLowerCase()
-        : "";
+    const rawQuery =
+  typeof body.query === "string"
+    ? body.query
+    : typeof body.task === "string"
+      ? body.task
+      : "";
+
+const query = rawQuery.trim().toLowerCase();
 
     if (!query) {
       return Response.json(
