@@ -28,6 +28,21 @@ function geminiHeaders() {
 
 export async function POST(request) {
   try {
+    const routerKey = request.headers.get("x-ai-router-key");
+
+if (!process.env.AI_ROUTER_KEY) {
+  return Response.json(
+    { error: "AI router authentication is not configured." },
+    { status: 500 }
+  );
+}
+
+if (routerKey !== process.env.AI_ROUTER_KEY) {
+  return Response.json(
+    { error: "Unauthorized." },
+    { status: 401 }
+  );
+}
     if (!process.env.GEMINI_API_KEY) {
       return Response.json(
         { error: "Gemini configuration missing." },
