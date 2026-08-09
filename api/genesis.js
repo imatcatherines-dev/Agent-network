@@ -92,12 +92,44 @@ export async function POST(request) {
       .sort((a, b) => b.score - a.score);
 
     const best = ranked[0] || null;
+        let agentResponse = null;
+
+    if (best && best.endpoint && best.name !== "Genesis") {
+      const target = new URL(best.endpoint);
+
+      const trusted =
+        target.protocol === "https:" &&
+        target.hostname === "agent-network-silk.vercel.app";
+
+      if (!trusted) {
+        return Response.json(
+          {
+            error: "Selected agent endpoint is not trusted.",
+            selectedAgent: best
+          },
+          { status: 400 }
+        );
+      }
+
+      const delegated = await fetch(best.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          task
+        })
+      });
+
+      agentResponse = await delegated.json();
+    }
         return Response.json({
       agent: "Genesis",
       task,
       routed: Boolean(best),
       bestMatch: best,
-      alternatives: ranked.slice(1, 5)
+alternatives: ranked.slice(1, 5),
+agentResponse
     });
 
   } catch (error) {
