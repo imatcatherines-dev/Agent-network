@@ -43,40 +43,31 @@ export async function POST(request) {
 
     if (!query) {
       return rpcError(id, -32602, "A text query is required");
-    }
-        const response = await fetch(
-      `${process.env.SUPABASE_URL}/rest/v1/agents` +
-      `?select=id,name,endpoint,capabilities,status` +
-      `&status=eq.active&limit=100`,
-      {
-        headers: headers()
-      }
-    );
+    
+}
 
-    const agents = await response.json();
+const genesisResponse = await fetch(
+  new URL("/api/genesis", request.url),
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      task: query
+    })
+  }
+);
 
-    if (!response.ok) {
-      return rpcError(
-        id,
-        -32603,
-        "Agent discovery failed"
-      );
-    }
+const genesisData = await genesisResponse.json();
 
-    const matches = agents.filter(agent => {
-      const capabilities = Array.isArray(agent.capabilities)
-        ? agent.capabilities
-        : [];
-
-      const searchable = [
-        agent.name,
-        ...capabilities
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchable.includes(query);
-    });
+if (!genesisResponse.ok) {
+  return rpcError(
+    id,
+    -32603,
+    "Genesis routing failed"
+  );
+}
         const contextId =
       message.contextId || crypto.randomUUID();
 
@@ -90,12 +81,8 @@ export async function POST(request) {
           role: "ROLE_AGENT",
           parts: [
             {
-              data: {
-                query,
-                count: matches.length,
-                agents: matches
-              },
-              mediaType: "application/json"
+              data: genesisData,
+mediaType: "application/json"
             }
           ]
         }
