@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2A Network Test</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 30px 20px;
+      background: #080b12;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 650px;
+      margin: auto;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    input {
+      background: #111622;
+      color: white;
+      border: 1px solid #31394b;
+    }
+
+    button {
+      background: #755cff;
+      color: white;
+      border: 0;
+      font-weight: bold;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      background: #111622;
+      border: 1px solid #31394b;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 25px;
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <h1>A2A Agent Test</h1>
+
+  <p>
+    Send a request through the Agent Network using its A2A endpoint.
+  </p>
+
+  <input
+    id="query"
+    value="discovery"
+    placeholder="What kind of agent do you need?"
+  >
+
+  <button onclick="sendMessage()">
+    Ask Agent Network
+  </button>
+
+  <pre id="result">Waiting for request...</pre>
+  <script>
+  async function sendMessage() {
+    const query = document.getElementById("query").value.trim();
+    const result = document.getElementById("result");
+
+    if (!query) {
+      result.textContent = "Enter a query first.";
+      return;
+    }
+
+    result.textContent = "Sending A2A request...";
+
+    try {
+      const response = await fetch("/api/a2a", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: crypto.randomUUID(),
+          method: "SendMessage",
+          params: {
+            message: {
+              messageId: crypto.randomUUID(),
+              role: "ROLE_USER",
+              parts: [
+                {
+                  text: query
+                }
+              ]
+            }
+          }
+        })
+      });
+
+      const data = await response.json();
+
+      result.textContent =
+        JSON.stringify(data, null, 2);
+
+    } catch (error) {
+      result.textContent =
+        "Request failed: " + String(error);
+    }
+  }
+</script>
+
+</main>
+</body>
+</html>
