@@ -111,15 +111,18 @@ export async function POST(request) {
         );
       }
 
-      const delegated = await fetch(best.endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          task
-        })
-      });
+const delegated = await fetch(best.endpoint, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    ...(target.pathname === "/api/research"
+      ? { "x-ai-router-key": process.env.AI_ROUTER_KEY }
+      : {})
+  },
+  body: JSON.stringify({
+    task
+  })
+});      
 
       agentResponse = await delegated.json();
     }
